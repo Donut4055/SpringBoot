@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${formTitle}">Lịch chiếu</title>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2 class="mb-4" th:text="${formTitle}">Lịch chiếu</h2>
+    <form th:action="@{${showtime.id == null} ? '/showtimes/add' : '/showtimes/edit/' + ${showtime.id}}"
+          th:object="${showtime}" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label class="form-label">Phim:</label>
+            <select th:field="*{movieId}" class="form-select" required>
+                <option value="">-- Chọn phim --</option>
+                <option th:each="movie : ${movies}"
+                        th:value="${movie.id}" th:text="${movie.title}"
+                        th:selected="${showtime.movieId != null and movie.id == showtime.movieId}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Phòng chiếu:</label>
+            <select th:field="*{screenRoomId}" class="form-select" required>
+                <option value="">-- Chọn phòng chiếu --</option>
+                <option th:each="room : ${screenRooms}"
+                        th:value="${room.id}" th:text="${room.name}"
+                        th:selected="${showtime.screenRoomId != null and room.id == showtime.screenRoomId}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thời gian bắt đầu:</label>
+            <input type="datetime-local" th:field="*{startTime}" class="form-control" required/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thời gian kết thúc:</label>
+            <input type="datetime-local" th:field="*{endTime}" class="form-control" required/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Số ghế trống:</label>
+            <input type="number" th:field="*{numberSeatEmpty}" class="form-control" required min="0"/>
+        </div>
+        <button type="submit" class="btn btn-success" th:text="${showtime.id == null} ? 'Lưu' : 'Cập nhật'"></button>
+        <a th:href="@{/showtimes}" class="btn btn-secondary">Quay lại</a>
+    </form>
+</div>
+</body>
+</html>

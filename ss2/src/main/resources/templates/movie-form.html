@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.id == null} ? 'Thêm phim mới' : 'Sửa phim'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2 class="mb-4" th:text="${movie.id == null} ? 'Thêm phim mới' : 'Sửa phim'"></h2>
+    <form th:action="@{${movie.id == null} ? '/movies/add' : '/movies/edit/' + ${movie.id}}"
+          th:object="${movie}" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label class="form-label">Tên phim:</label>
+            <input type="text" th:field="*{title}" class="form-control" required/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thể loại:</label>
+            <input type="text" th:field="*{genre}" class="form-control" required/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thời lượng (phút):</label>
+            <input type="number" th:field="*{duration}" class="form-control" required min="1"/>
+        </div>
+        <button type="submit" class="btn btn-success"
+                th:text="${movie.id == null} ? 'Lưu' : 'Cập nhật'"></button>
+        <a th:href="@{/movies}" class="btn btn-secondary">Quay lại</a>
+    </form>
+</div>
+</body>
+</html>

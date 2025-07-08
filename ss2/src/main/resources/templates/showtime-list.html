@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Danh sách lịch chiếu</title>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2 class="mb-4">Danh sách lịch chiếu</h2>
+
+    <!-- Form lọc -->
+    <form method="get" th:action="@{/showtimes}" class="row g-3 mb-3">
+        <div class="col-md-3">
+            <select class="form-select" name="movieId">
+                <option value="">-- Chọn phim --</option>
+                <option th:each="movie : ${movies}"
+                        th:value="${movie.id}"
+                        th:text="${movie.title}"
+                        th:selected="${selectedMovieId} == ${movie.id}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="screenRoomId">
+                <option value="">-- Chọn phòng chiếu --</option>
+                <option th:each="room : ${screenRooms}"
+                        th:value="${room.id}"
+                        th:text="${room.name}"
+                        th:selected="${selectedScreenRoomId} == ${room.id}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="datetime-local" class="form-control" name="startTime"
+                   th:value="${selectedStartTime != null} ? ${#dates.format(selectedStartTime, 'yyyy-MM-dd\'T\'HH:mm')}" />
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a th:href="@{/showtimes}" class="btn btn-secondary">Xóa lọc</a>
+        </div>
+    </form>
+
+    <a th:href="@{/showtimes/add}" class="btn btn-success mb-3">Thêm lịch chiếu mới</a>
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Tên phim</th>
+            <th>Phòng chiếu</th>
+            <th>Thời gian bắt đầu</th>
+            <th>Thời gian kết thúc</th>
+            <th>Số ghế trống</th>
+            <th>Chức năng</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(showtimes)}">
+            <td colspan="7" class="text-center text-muted">Không có lịch chiếu nào.</td>
+        </tr>
+        <tr th:each="showtime : ${showtimes}">
+            <td th:text="${showtime.id}"></td>
+            <td th:text="${showtime.movie != null and showtime.movie.title != null ? showtime.movie.title : '---'}"></td>
+            <td th:text="${showtime.screenRoom != null and showtime.screenRoom.name != null ? showtime.screenRoom.name : '---'}"></td>
+            <td th:text="${showtime.startTime != null ? #dates.format(showtime.startTime, 'yyyy-MM-dd HH:mm') : '---'}"></td>
+            <td th:text="${showtime.endTime != null ? #dates.format(showtime.endTime, 'yyyy-MM-dd HH:mm') : '---'}"></td>
+            <td th:text="${showtime.numberSeatEmpty != null ? showtime.numberSeatEmpty : '---'}"></td>
+            <td>
+                <a th:href="@{'/showtimes/edit/' + ${showtime.id}}" class="btn btn-warning btn-sm">Sửa</a>
+                <form th:action="@{'/showtimes/delete/' + ${showtime.id}}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Bạn có chắc muốn xóa lịch chiếu này?');">Xóa</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
