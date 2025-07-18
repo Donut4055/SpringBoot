@@ -1,30 +1,40 @@
 package com.example.ss9.controller;
 
+
 import com.example.ss9.Service.CloudinaryService;
+import com.example.ss9.Service.LogAnalysisService;
 import com.example.ss9.Service.MovieService;
 import com.example.ss9.model.DTO.MovieDTO;
 import com.example.ss9.model.entity.Movie;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/movies")
+@Slf4j
 public class MovieController {
-
-    private static final Logger logger = LoggerFactory.getLogger(MovieController.class);
 
     @Autowired
     private MovieService movieService;
 
     @Autowired
     private CloudinaryService cloudinaryService;
+
+    @Autowired
+    private LogAnalysisService logAnalysisService;
+
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_BLUE = "\u001B[34m";
 
     @PostMapping
     public ResponseEntity<Movie> addMovie(@ModelAttribute MovieDTO movieDTO) {
@@ -40,11 +50,11 @@ public class MovieController {
             }
 
             Movie savedMovie = movieService.saveMovie(movie);
-            logger.info("Movie added successfully: {} at {}",
+            log.info("Movie added successfully: {} at {}",
                     savedMovie.getTitle(), LocalDateTime.now());
             return ResponseEntity.ok(savedMovie);
         } catch (Exception e) {
-            logger.error("Error adding movie: {}", e.getMessage(), e);
+            log.error("Error adding movie: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -54,7 +64,7 @@ public class MovieController {
         try {
             Optional<Movie> oldMovieOpt = movieService.getMovieById(id);
             if (oldMovieOpt.isEmpty()) {
-                logger.error("Movie not found with id: {}", id);
+                log.error(ANSI_RED + "Movie not found with id: {}" + ANSI_RESET, id);
                 return ResponseEntity.notFound().build();
             }
 
@@ -75,15 +85,17 @@ public class MovieController {
             Movie result = movieService.updateMovie(id, updatedMovie);
 
             if (result != null) {
-                logger.info("Movie updated successfully:\nOld info: {}\nNew info: {}",
+                log.info("Movie updated successfully:\n" +
+                                ANSI_YELLOW + "Old info: {}" + ANSI_RESET + "\n" +
+                                ANSI_BLUE + "New info: {}" + ANSI_RESET,
                         oldMovie.toString(), result.toString());
                 return ResponseEntity.ok(result);
             } else {
-                logger.error("Failed to update movie with id: {}", id);
+                log.error(ANSI_RED + "Failed to update movie with id: {}" + ANSI_RESET, id);
                 return ResponseEntity.badRequest().build();
             }
         } catch (Exception e) {
-            logger.error("Error updating movie: {}", e.getMessage(), e);
+            log.error(ANSI_RED + "Error updating movie: {}" + ANSI_RESET, e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -93,7 +105,7 @@ public class MovieController {
         try {
             Optional<Movie> movieOpt = movieService.getMovieById(id);
             if (movieOpt.isEmpty()) {
-                logger.error("Movie not found with id: {}", id);
+                log.error("Movie not found with id: {}", id);
                 return ResponseEntity.notFound().build();
             }
 
@@ -101,14 +113,15 @@ public class MovieController {
             boolean deleted = movieService.deleteMovie(id);
 
             if (deleted) {
-                logger.info("Movie deleted successfully: {}", movie.toString());
+                log.info(ANSI_RED + "xóa thành công" + ANSI_RESET + " " +
+                        ANSI_BLUE + "{}" + ANSI_RESET, movie.toString());
                 return ResponseEntity.ok().build();
             } else {
-                logger.error("Failed to delete movie with id: {}", id);
+                log.error("Failed to delete movie with id: {}", id);
                 return ResponseEntity.badRequest().build();
             }
         } catch (Exception e) {
-            logger.error("Error deleting movie: {}", e.getMessage(), e);
+            log.error("Error deleting movie: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -121,17 +134,41 @@ public class MovieController {
 
             if (searchMovie != null && !searchMovie.trim().isEmpty()) {
                 movies = movieService.searchMovies(searchMovie);
-                logger.info("Search keyword: {}, Results count: {}, Execution time: {} ms",
+                log.info(ANSI_BLUE + "Search keyword: {}, Results count: {}, Execution time: {} ms" + ANSI_RESET,
                         searchMovie, movies.size(), System.currentTimeMillis() - startTime);
             } else {
                 movies = movieService.getAllMovies();
-                logger.info("Get all movies, Results count: {}, Execution time: {} ms",
+                log.info(ANSI_BLUE + "Get all movies, Results count: {}, Execution time: {} ms" + ANSI_RESET,
                         movies.size(), System.currentTimeMillis() - startTime);
             }
 
             return ResponseEntity.ok(movies);
         } catch (Exception e) {
-            logger.error("Error getting movies: {}", e.getMessage(), e);
+            log.error("Error getting movies: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/search-logs")
+    public ResponseEntity<Map<String, Integer>> getSearchLogs() {
+        try {
+            Map<String, Integer> searchKeywords = logAnalysisService.getSearchKeywords();
+            log.info("Retrieved search keywords from logs: {} unique keywords", searchKeywords.size());
+            return ResponseEntity.ok(searchKeywords);
+        } catch (Exception e) {
+            log.error("Error getting search logs: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<Movie>> getMovieSuggestions() {
+        try {
+            List<Movie> suggestions = logAnalysisService.getMovieSuggestions();
+            log.info("Retrieved movie suggestions: {} movies", suggestions.size());
+            return ResponseEntity.ok(suggestions);
+        } catch (Exception e) {
+            log.error("Error getting movie suggestions: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
